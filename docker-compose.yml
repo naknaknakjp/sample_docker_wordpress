@@ -1,0 +1,44 @@
+version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - db:dbtest
+    volumes:
+      - ./html:/var/www/html
+      - ./000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - ./default-ssl.conf:/etc/apache2/sites-available/default-ssl.conf
+      - ./ssmtp.conf:/etc/ssmtp/ssmtp.conf
+      - ./php.ini:/usr/local/etc/php/php.ini
+    depends_on:
+      - db
+  db:
+    image: "mysql:5.7"
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+      MYSQL_DATABASE: dev_wp
+      MYSQL_USER: dev_wp
+      MYSQL_PASSWORD: dev_wp
+  pma:
+    image: phpmyadmin/phpmyadmin
+    environment:
+    - PMA_ARBITRARY=1
+    - PMA_HOST=db
+    - PMA_USER=dev_wp
+    - PMA_PASSWORD=dev_wp
+    ports:
+    - "8080:80"
+    links:
+    - db
+    depends_on:
+    - db
+  smtp:
+    image: schickling/mailcatcher
+    ports:
+    - "1080:1080"
+    - "1025:1025"
